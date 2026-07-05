@@ -1,0 +1,29 @@
+name: Actualizar precios cripto
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Obtener precios
+        run: |
+          curl -L "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,nexo,dai,tether,usd-coin&vs_currencies=usd" > precios.json
+
+      - name: Commit
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add precios.json
+          git diff --cached --quiet || git commit -m "Actualizar precios"
+
+      - name: Push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
